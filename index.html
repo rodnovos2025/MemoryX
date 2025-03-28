@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игра на память</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #121212;
+            color: white;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 {
+            margin-top: 10px;
+            color: #f39c12;
+        }
+
+        #score {
+            font-size: 18px;
+            background: #333;
+            padding: 10px 15px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 70vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 20px;
+            flex-wrap: wrap;
+            word-wrap: break-word;
+            max-width: 90%;
+            margin: auto;
+        }
+
+        .number {
+            font-size: 50px;
+            font-weight: bold;
+            opacity: 1;
+            white-space: normal;
+            word-wrap: break-word;
+            text-align: center;
+            max-width: 100%;
+        }
+
+        #game-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #1e1e1e;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #input {
+            font-size: 20px;
+            padding: 10px;
+            width: 60%;
+            max-width: 200px;
+            border: 2px solid #f39c12;
+            border-radius: 5px;
+            background: #222;
+            color: #fff;
+            text-align: center;
+        }
+
+        #next-btn {
+            padding: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            background: #f39c12;
+            border: none;
+            border-radius: 5px;
+            color: #000;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        #next-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #game-over {
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        #game-over p {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        #game-over button {
+            font-size: 18px;
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #yes-btn {
+            background: #27ae60;
+            color: #fff;
+        }
+
+        #no-btn {
+            background: #c0392b;
+            color: #fff;
+        }
+
+        #yes-btn:hover {
+            background: #2ecc71;
+        }
+
+        #no-btn:hover {
+            background: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Тест на память</h1>
+    <div id="score">Очки: 0</div>
+    <div id="game-container"></div>
+
+    <div id="game-footer">
+        <input type="number" id="input" placeholder="Введите цифры" disabled>
+        <button id="next-btn" disabled>Дальше</button>
+    </div>
+
+    <div id="overlay">
+        <div id="game-over">
+            <p id="game-over-text"></p>
+            <button id="yes-btn">Да</button>
+            <button id="no-btn">Нет</button>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let round = 1;
+        let currentNumbers = '';
+
+        const gameContainer = document.getElementById('game-container');
+        const inputElement = document.getElementById('input');
+        const nextButton = document.getElementById('next-btn');
+        const scoreElement = document.getElementById('score');
+        const overlay = document.getElementById('overlay');
+        const gameOverText = document.getElementById('game-over-text');
+        const yesButton = document.getElementById('yes-btn');
+        const noButton = document.getElementById('no-btn');
+
+        function showRandomNumbers() {
+            currentNumbers = '';
+            gameContainer.innerHTML = '';
+
+            for (let i = 0; i < round; i++) {
+                currentNumbers += Math.floor(Math.random() * 10);
+            }
+
+            let numberElement = document.createElement('div');
+            numberElement.classList.add('number');
+            numberElement.textContent = currentNumbers;
+            gameContainer.appendChild(numberElement);
+
+            inputElement.value = '';
+            inputElement.disabled = true;
+            nextButton.disabled = true;
+
+            setTimeout(() => {
+                numberElement.style.opacity = '0';
+                inputElement.disabled = false;
+                nextButton.disabled = false;
+            }, round * 1000);
+        }
+
+        function checkInput() {
+            const userInput = inputElement.value;
+            if (userInput === currentNumbers) {
+                score += round;
+            } else {
+                let correctCount = 0;
+                for (let i = 0; i < userInput.length; i++) {
+                    if (userInput[i] === currentNumbers[i]) {
+                        correctCount++;
+                    } else {
+                        break;
+                    }
+                }
+                score += correctCount;
+                gameOverText.innerHTML = `Вы ошиблись! Итоговый счёт: ${score}<br>Сыграть снова?`;
+                overlay.style.display = 'flex';
+                return;
+            }
+
+            scoreElement.textContent = `Очки: ${score}`;
+            round++;
+            nextButton.disabled = true;
+            showRandomNumbers();
+        }
+
+        function restartGame() {
+            overlay.style.display = 'none';
+            score = 0;
+            round = 1;
+            scoreElement.textContent = `Очки: ${score}`;
+            showRandomNumbers();
+        }
+
+        function exitGame() {
+            overlay.style.display = 'none';
+            gameContainer.innerHTML = '<h2>Спасибо за игру!</h2>';
+        }
+
+        nextButton.addEventListener('click', checkInput);
+        yesButton.addEventListener('click', restartGame);
+        noButton.addEventListener('click', exitGame);
+
+        showRandomNumbers();
+    </script>
+
+</body>
+  </html>
